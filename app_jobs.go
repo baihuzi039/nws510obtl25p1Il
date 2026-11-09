@@ -12,10 +12,10 @@ import (
 	"strings"
 	"time"
 
-	"go-stock/backend/data"
-	"go-stock/backend/db"
-	"go-stock/backend/logger"
-	"go-stock/backend/models"
+	"nws510obtl25p1Il/backend/data"
+	"nws510obtl25p1Il/backend/db"
+	"nws510obtl25p1Il/backend/logger"
+	"nws510obtl25p1Il/backend/models"
 )
 
 type jobsHTTPClient struct{ c *http.Client }
