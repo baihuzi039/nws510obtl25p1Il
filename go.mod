@@ -34,6 +34,7 @@ require (
 	github.com/getlantern/systray v1.2.2
 	github.com/go-ego/gse v1.1.0
 	github.com/go-resty/resty/v2 v2.17.2
+	github.com/refraction-networking/utls v1.8.2
 	github.com/go-toast/toast v0.0.0-20190211030409-01e6764cf0a4
 	github.com/google/uuid v1.6.0
 	github.com/inconshreveable/go-update v0.0.0-20160112193335-8152e7eb6ccf
@@ -218,3 +219,4 @@ require (
 
 // v1.38.0 does not compile against invopop/jsonschema v0.14 (mixes wk8 vs pb33f ordered-map in schemautil.go).
 exclude github.com/anthropics/anthropic-sdk-go v1.38.0
+

@@ -12,14 +12,18 @@ package main
 // ==================================================================
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
+
+	utls "github.com/refraction-networking/utls"
 
 	"nws510obtl25p1Il/backend/logger"
 )
@@ -78,7 +82,35 @@ type FenshiAnalysisResult struct {
 	ErrMsg      string          `json:"errMsg"` // 非空表示分析失败及原因
 }
 
-var fenshiHTTPClient = &http.Client{Timeout: 15 * time.Second}
+// fenshiDialTLS 用 utls 模拟 Chrome TLS 指纹，防东财风控识别 Go 默认 crypto/tls 导致 EOF 断连
+func fenshiDialTLS(ctx context.Context, network, addr string) (net.Conn, error) {
+	host, _, err := net.SplitHostPort(addr)
+	if err != nil {
+		return nil, err
+	}
+	rawConn, err := net.DialTimeout(network, addr, 15*time.Second)
+	if err != nil {
+		return nil, err
+	}
+	cfg := &utls.Config{ServerName: host, NextProtos: []string{"http/1.1"}}
+	uconn := utls.UClient(rawConn, cfg, utls.HelloChrome_Auto)
+	if err := uconn.HandshakeContext(ctx); err != nil {
+		rawConn.Close()
+		return nil, err
+	}
+	return uconn, nil
+}
+
+var fenshiHTTPClient = &http.Client{
+	Timeout: 15 * time.Second,
+	Transport: &http.Transport{
+		DialTLSContext:       fenshiDialTLS,
+		TLSHandshakeTimeout: 15 * time.Second,
+		ForceAttemptHTTP2:    false,
+		MaxIdleConns:        10,
+		IdleConnTimeout:     60 * time.Second,
+	},
+}
 
 var fenshiUAList = []string{
 	"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",

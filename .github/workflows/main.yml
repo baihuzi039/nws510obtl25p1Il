@@ -47,6 +47,16 @@ jobs:
           MSG=$(git log -1 --pretty=format:'%s' | tr -d '"' | tr -d "'" | tr -d '\\')
           echo "commit_message=$MSG" >> $GITHUB_OUTPUT
 
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.27'
+
+      - name: Go mod tidy (sync go.sum for new deps)
+        run: |
+          go mod tidy
+          git diff --stat go.mod go.sum || true
+
       - name: Build wails x go-stock
         uses: ArvinLovegood/wails-build-action@v3.9
         id: build
