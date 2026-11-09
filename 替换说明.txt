@@ -1,0 +1,19 @@
+v1.3 增量补丁（基于你仓库当前 v1.2 代码）
+========================================
+
+这轮 CI 报错缺 3 个东西，本补丁补齐：
+  syncDailyKLineJob / SnapshotAuctionNow / db.GetDBPath / models.DailyAuction
+
+文件清单（4个）：
+1. app_jobs.go        —— 新文件，放仓库根目录（和 app.go 同级）
+2. app_fenshi.go      —— 覆盖根目录同名文件（你仓库里已有，直接覆盖）
+3. backend/db/db.go       —— 覆盖同名文件（加了 GetDBPath 函数，共8行改动）
+4. backend/models/daily_auction.go —— 新文件，放进 backend/models/
+
+替换步骤：
+1. 把上面4个文件按路径放进你本地克隆目录（app_jobs.go、app_fenshi.go 放根目录）
+2. GitHub Desktop → Commit to main（摘要填 v1.3）→ Push origin
+3. History 里右键最新提交 → Create Tag → 输入 v1.3-release → 再 Push origin
+   （或网页 releases/new → tag 输 v1.3-release → Publish release）
+
+注意：本轮4个文件里 import 已写好 nws510obtl25p1Il 路径，直接放进去就能编译，无需改动。
