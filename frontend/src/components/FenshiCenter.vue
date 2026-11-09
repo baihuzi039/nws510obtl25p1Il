@@ -46,7 +46,7 @@
 <script setup>
 import { ref, computed, h } from "vue";
 import { NCard, NButton, NDataTable, NTag, NInput, NSpace, NEmpty } from "naive-ui";
-import { FenshiScanCandidates, FenshiAnalyzeStock, FenshiHotBoards } from "../wailsjs/go/main/App";
+import { FenshiScanCandidates, FenshiAnalyzeStock, FenshiHotBoards } from "../../wailsjs/go/main/App";
 
 const scanning = ref(false);
 const loadingBoards = ref(false);
