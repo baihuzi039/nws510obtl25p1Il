@@ -78,21 +78,57 @@ type FenshiAnalysisResult struct {
 	ErrMsg      string          `json:"errMsg"` // 非空表示分析失败及原因
 }
 
-var fenshiHTTPClient = &http.Client{Timeout: 10 * time.Second}
+var fenshiHTTPClient = &http.Client{Timeout: 15 * time.Second}
 
-// fenshiGet 拉取并解析JSON
-func fenshiGet(url string) (map[string]any, error) {
+var fenshiUAList = []string{
+	"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+	"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36 Edg/126.0.0.0",
+	"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0",
+}
+
+// fenshiGet 拉取并解析JSON（带重试 + 域名备援，防东财风控断连EOF）
+func fenshiGet(rawURL string) (map[string]any, error) {
+	var lastErr error
+	attempts := []string{rawURL}
+	// 域名备援：主域被风控时换备用节点（东财同一接口多域名部署）
+	if strings.Contains(rawURL, "push2his.eastmoney.com") {
+		attempts = append(attempts, strings.Replace(rawURL, "push2his.eastmoney.com", "92.push2his.eastmoney.com", 1))
+	} else if strings.Contains(rawURL, "push2.eastmoney.com") {
+		attempts = append(attempts, strings.Replace(rawURL, "push2.eastmoney.com", "92.push2.eastmoney.com", 1))
+	}
+	for i, u := range attempts {
+		m, err := fenshiGetOnce(u)
+		if err == nil {
+			return m, nil
+		}
+		lastErr = err
+		logger.SugaredLogger.Warnf("fenshiGet 第%d次失败: %v", i+1, err)
+		time.Sleep(300 * time.Millisecond)
+	}
+	return nil, lastErr
+}
+
+func fenshiGetOnce(url string) (map[string]any, error) {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36")
+	// 随机 UA + 完整浏览器头，降低被风控识别概率
+	ua := fenshiUAList[time.Now().UnixNano()%int64(len(fenshiUAList))]
+	req.Header.Set("User-Agent", ua)
+	req.Header.Set("Accept", "*/*")
+	req.Header.Set("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8")
+	req.Header.Set("Connection", "keep-alive")
 	req.Header.Set("Referer", "https://quote.eastmoney.com/")
 	resp, err := fenshiHTTPClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode != 200 {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("HTTP %d: %s", resp.StatusCode, strings.TrimSpace(string(body)))
+	}
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
