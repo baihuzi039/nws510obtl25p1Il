@@ -345,7 +345,7 @@ export function useAgentStream({ sessions, scrollToBottom, config }) {
         // 面板关闭的后台分析完成：发系统桌面通知提醒（受设置页「本地推送」开关控制）
         if (panelVisible && panelVisible.value === false) {
           try {
-            SendDesktopNotification('go-stock AI 分析完成', '后台分析已生成，点击右侧 AI 助手胶囊查看结果')
+            SendDesktopNotification('nws510obtl25p1Il AI 分析完成', '后台分析已生成，点击右侧 AI 助手胶囊查看结果')
           } catch (_) { /* 通知失败静默 */ }
         }
       }

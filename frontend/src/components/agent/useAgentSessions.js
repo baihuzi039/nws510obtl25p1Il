@@ -13,7 +13,7 @@ import {
   DeleteAiAssistantSession
 } from '../../../wailsjs/go/main/App'
 
-const STORAGE_KEY_ACTIVE_SESSION = 'go-stock-agent-active-session'
+const STORAGE_KEY_ACTIVE_SESSION = 'nws510obtl25p1Il-agent-active-session'
 
 /**
  * 多会话状态仓库
@@ -156,7 +156,7 @@ export function useAgentSessions({ scrollToBottom, hooks = {} }) {
 
   // ===== 多会话管理 =====
 
-  const SESSION_WELCOME = '我是 go-stock AI Agent 助手，可以帮您分析股票、查询市场数据、获取研究报告等。请问有什么可以帮您的？'
+  const SESSION_WELCOME = '我是 nws510obtl25p1Il AI Agent 助手，可以帮您分析股票、查询市场数据、获取研究报告等。请问有什么可以帮您的？'
 
   function welcomeMessage() {
     return {

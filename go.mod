@@ -3,7 +3,7 @@ module nws510obtl25p1Il
 go 1.27.2
 
 // gorm 官方驱动 gorm.io/driver/sqlite 硬性 blank-import mattn/go-sqlite3（CGO 实现）。
-// go-stock 的 sqlite 驱动统一使用 modernc.org/sqlite（与 gotdx 共用同一实现），
+// 本项目的 sqlite 驱动统一使用 modernc.org/sqlite（与 gotdx 共用同一实现），
 // 故用 third_party/mattn-sqlite3-stub 空壳包顶替 mattn：保持纯 Go 构建，
 // 且避免引入第二个 sqlite 实现（驱动注册由 modernc.org/sqlite 完成，驱动名 "sqlite"）。
 replace github.com/mattn/go-sqlite3 => ./third_party/mattn-sqlite3-stub

@@ -36,7 +36,7 @@ func InitSystray(a *App) {
 		systray.Run(func() {
 			systray.SetIcon(icon2)
 			systray.SetTitle("nws510obtl25p1Il")
-			systray.SetTooltip("数据桌面助手")
+			systray.SetTooltip("nws510obtl25p1Il：AI赋能股票分析")
 
 			mShow := systray.AddMenuItem("显示窗口", "显示主窗口")
 			mQuit := systray.AddMenuItem("退出程序", "退出应用程序")
