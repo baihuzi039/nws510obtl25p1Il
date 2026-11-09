@@ -12,9 +12,10 @@ import (
 	"strings"
 	"time"
 
-	"nws510obtl25p1Il/backend/db"
-	"nws510obtl25p1Il/backend/logger"
-	"nws510obtl25p1Il/backend/models"
+	"go-stock/backend/data"
+	"go-stock/backend/db"
+	"go-stock/backend/logger"
+	"go-stock/backend/models"
 )
 
 type jobsHTTPClient struct{ c *http.Client }
@@ -74,7 +75,7 @@ func syncDailyKLineJob(ctx context.Context) {
 			logger.SugaredLogger.Errorf("syncDailyKLineJob panic: %v", r)
 		}
 	}()
-	var stocks []models.StockBasic
+	var stocks []data.StockBasic
 	if err := db.Dao.Where("list_status = ?", "L").Find(&stocks).Error; err != nil {
 		logger.SugaredLogger.Errorf("syncDailyKLineJob query error: %v", err)
 		return
@@ -106,7 +107,7 @@ func (a *App) SnapshotAuctionNow() {
 		}
 	}()
 	day := time.Now().Format("2006-01-02")
-	var stocks []models.StockBasic
+	var stocks []data.StockBasic
 	if err := db.Dao.Where("list_status = ?", "L").Find(&stocks).Error; err != nil {
 		logger.SugaredLogger.Errorf("SnapshotAuctionNow query error: %v", err)
 		return
