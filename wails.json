@@ -1,0 +1,19 @@
+{
+  "name": "nws510obtl25p1Il",
+  "outputfilename": "nws510obtl25p1Il",
+  "frontend:install": "npm install",
+  "frontend:build": "npm run build",
+  "frontend:dev:watcher": "npm run dev",
+  "frontend:dev:serverUrl": "http://localhost:5173",
+  "author": {
+    "name": "spark",
+    "email": "sparkmemory@163.com"
+  },
+  "info": {
+    "companyName": "sparkmemory",
+    "productName": "nws510obtl25p1Il",
+    "productVersion": "1.0.0",
+    "copyright": "Copyright#sparkmemory@163.com",
+    "comments": "desktop data dashboard demo"
+  }
+}
