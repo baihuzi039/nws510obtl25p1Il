@@ -5,7 +5,7 @@
         <n-button type="primary" :loading="scanning" @click="scanPool">扫描候选池（高开+放量）</n-button>
         <n-button :loading="loadingBoards" @click="loadBoards">热门板块</n-button>
         <n-input v-model:value="manualCode" placeholder="输入代码如 600519" size="small" style="width: 180px" @keyup.enter="analyzeManual" clearable />
-        <n-button @click="analyzeManual">分析该股</n-button>
+        <n-button :loading="analyzing" @click="analyzeManual">分析该股</n-button>
         <span class="tip">候选池口径：高开1-7% + 量比≥3，剔除ST。建议基于2022-2025全市场分钟数据历史统计。</span>
       </div>
     </n-card>
@@ -33,6 +33,7 @@
         </n-space>
       </n-card>
       <n-card size="small" v-else class="mb12" title="分时分析">
+        <n-alert v-if="analyzeError" type="error" :title="'分析失败'" style="margin-bottom: 8px">{{ analyzeError }}</n-alert>
         <n-empty description="点击候选池某行，或输入代码分析" />
       </n-card>
 
@@ -45,7 +46,7 @@
 
 <script setup>
 import { ref, computed, h } from "vue";
-import { NCard, NButton, NDataTable, NTag, NInput, NSpace, NEmpty } from "naive-ui";
+import { NCard, NButton, NDataTable, NTag, NInput, NSpace, NEmpty, NAlert } from "naive-ui";
 import { FenshiScanCandidates, FenshiAnalyzeStock, FenshiHotBoards } from "../../wailsjs/go/main/App";
 
 const scanning = ref(false);
@@ -94,9 +95,27 @@ async function loadBoards() {
   }
 }
 
+const analyzing = ref(false);
+const analyzeError = ref("");
+
 async function analyze(code) {
-  const r = await FenshiAnalyzeStock(code);
-  if (r) result.value = r;
+  analyzing.value = true;
+  analyzeError.value = "";
+  try {
+    const r = await FenshiAnalyzeStock(code);
+    if (r) {
+      result.value = r.errMsg ? null : r;
+      if (r.errMsg) analyzeError.value = r.errMsg;
+    } else {
+      result.value = null;
+      analyzeError.value = "未获取到分析结果（后端返回空）";
+    }
+  } catch (e) {
+    result.value = null;
+    analyzeError.value = "分析调用失败: " + (e && e.message ? e.message : e);
+  } finally {
+    analyzing.value = false;
+  }
 }
 
 async function analyzeManual() {

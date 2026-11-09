@@ -75,6 +75,7 @@ type FenshiAnalysisResult struct {
 
 	Signals     []FenshiSignal  `json:"signals"`
 	Advice      string          `json:"advice"`
+	ErrMsg      string          `json:"errMsg"` // 非空表示分析失败及原因
 }
 
 var fenshiHTTPClient = &http.Client{Timeout: 10 * time.Second}
@@ -201,20 +202,23 @@ func (a *App) FenshiScanCandidates() []FenshiCand {
 func (a *App) FenshiAnalyzeStock(stockCode string) *FenshiAnalysisResult {
 	secid := fenshiSecid(stockCode)
 	url := fmt.Sprintf("https://push2his.eastmoney.com/api/qt/stock/trends2/get?secid=%s&fields1=f1,f2,f3,f4,f5,f6,f7,f8,f9,f10,f11,f12,f13&fields2=f51,f52,f53,f54,f55,f56,f57,f58&iscr=0&ndays=1", secid)
+	retErr := func(msg string) *FenshiAnalysisResult {
+		logger.SugaredLogger.Errorf("FenshiAnalyzeStock %s: %s", stockCode, msg)
+		return &FenshiAnalysisResult{Code: stockCode, ErrMsg: msg}
+	}
 	m, err := fenshiGet(url)
 	if err != nil {
-		logger.SugaredLogger.Errorf("FenshiAnalyzeStock trends2 error: %v", err)
-		return nil
+		return retErr("分时数据请求失败: " + err.Error())
 	}
 	d, _ := m["data"].(map[string]any)
 	if d == nil {
-		return nil
+		return retErr("未获取到分时数据（可能代码不存在，或当前为非交易时段且接口无当日数据），代码: " + stockCode)
 	}
 	name, _ := d["name"].(string)
 	preClose := fenshiToFloat(d["preClose"])
 	trends, _ := d["trends"].([]any)
 	if len(trends) == 0 || preClose <= 0 {
-		return nil
+		return retErr("分时数据为空（接口返回无趋势数据），代码: " + stockCode)
 	}
 
 	res := &FenshiAnalysisResult{Code: stockCode, Name: name, PrevClose: preClose, Trend: make([]FenshiTick, 0, len(trends))}
@@ -251,7 +255,7 @@ func (a *App) FenshiAnalyzeStock(stockCode string) *FenshiAnalysisResult {
 		res.Trend = append(res.Trend, FenshiTick{Time: parts[0], Open: op, Now: np, High: hp, Low: lp, Vol: fenshiToFloat(parts[5]), Amt: fenshiToFloat(parts[6]), Avg: ap})
 	}
 	if openPx <= 0 || nowPx <= 0 {
-		return nil
+		return retErr("分时数据解析异常（价格均为0），代码: " + stockCode)
 	}
 	res.Price = nowPx
 	res.GapPct = (openPx/preClose - 1) * 100
